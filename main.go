@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/masfuulaji/go-chat/pkg/websocket"
 	"github.com/rs/cors"
@@ -10,6 +12,19 @@ import (
 
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
+func generateRandomID(length int) string {
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    seed := rand.NewSource(time.Now().UnixNano())
+    random := rand.New(seed)
+
+    id := make([]byte, length)
+    for i := range id {
+        id[i] = charset[random.Intn(len(charset))]
+    }
+
+    return string(id)
 }
 
 func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
@@ -20,7 +35,10 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%+v\n", err)
 	}
 
+    clientID := generateRandomID(6) 
+
 	client := &websocket.Client{
+        ID:   clientID,
 		Conn: conn,
 		Pool: pool,
 	}
