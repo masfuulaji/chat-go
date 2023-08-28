@@ -35,12 +35,19 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%+v\n", err)
 	}
 
+    room := r.URL.Query().Get("room")
+    if room == "" {
+        conn.Close()
+        return
+    }
+
     clientID := generateRandomID(6) 
 
 	client := &websocket.Client{
         ID:   clientID,
 		Conn: conn,
 		Pool: pool,
+        Room: room,
 	}
 	pool.Register <- client
 

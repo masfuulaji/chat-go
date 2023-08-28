@@ -12,6 +12,7 @@ type Client struct {
 	ID   string
 	Conn *websocket.Conn
 	Pool *Pool
+    Room string
 	mu   sync.Mutex
 }
 
@@ -20,6 +21,7 @@ type Message struct {
     Body string `json:"body"`
     Sender string `json:"sender"`
     MessageType int `json:"message_type"`
+    Room string `json:"room"`
 }
 
 func (c *Client) Read() {
