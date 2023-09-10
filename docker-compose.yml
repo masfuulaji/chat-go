@@ -9,3 +9,24 @@ services:
       - 8080:8080
     volumes:
       - .:/app
+    depends_on:
+      - mongodb
+    networks:
+      - go-chat
+  mongodb:
+    image: mongo:7.0.1
+    container_name: mongodb
+    networks:
+      - go-chat
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+networks:
+  go-chat:
+    driver: bridge
+volumes:
+  mongodb:
