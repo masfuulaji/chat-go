@@ -6,6 +6,7 @@ import (
 
 	"github.com/masfuulaji/go-chat/internal/app/models"
 	"github.com/masfuulaji/go-chat/internal/app/request"
+	"github.com/masfuulaji/go-chat/internal/database"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -23,8 +24,8 @@ type RoomRepositoryImpl struct {
     db *mongo.Database
 }
 
-func NewRoomRepository(db *mongo.Database) *RoomRepositoryImpl {
-    return &RoomRepositoryImpl{db: db}
+func NewRoomRepository() *RoomRepositoryImpl {
+    return &RoomRepositoryImpl{db: database.DB}
 }
 
 func (r *RoomRepositoryImpl) CreateRoom(room *request.RoomRequestInsert) error {
@@ -41,13 +42,13 @@ func (r *RoomRepositoryImpl) GetRoom(roomID string) (*models.Room, error) {
     if err != nil {
         return &room, err
     }
-    err = r.db.Collection("rooms").FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&room)
+    err = r.db.Collection("rooms").FindOne(context.TODO(), bson.M{"_id": objectID, "deleted_at": bson.M{"$exists": false}}).Decode(&room)
     return &room, err
 }
 
 func (r *RoomRepositoryImpl) GetRooms() ([]*models.Room, error) {
     var rooms []*models.Room
-    cursor, err := r.db.Collection("rooms").Find(context.TODO(), bson.M{})
+    cursor, err := r.db.Collection("rooms").Find(context.TODO(), bson.M{"deleted_at": bson.M{"$exists": false}})
     if err != nil {
         return rooms, err
     }

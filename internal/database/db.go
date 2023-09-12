@@ -8,6 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+var DB *mongo.Database
+
 func InitMongoDB() (*mongo.Database, error) {
     ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     defer cancel()
@@ -22,6 +24,8 @@ func InitMongoDB() (*mongo.Database, error) {
     if err != nil {
         return nil, err
     }
+
+    DB = client.Database("chatter")
 
     return client.Database("chatter"), nil
 }

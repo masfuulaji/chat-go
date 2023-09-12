@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+
+	"github.com/masfuulaji/go-chat/internal/app/repositories"
+	"github.com/masfuulaji/go-chat/internal/app/request"
 )
 
 type Pool struct {
@@ -34,6 +37,7 @@ func (p *Pool) Start() {
 			p.Rooms[client.Room][client] = true
 			p.mu.Unlock()
 			welcomeMessage := Message{Type: 1, Body: "Welcome!", Sender: client.ID, MessageType: 3, Room: client.Room}
+
 			client.Conn.WriteJSON(welcomeMessage)
 			for client := range p.Rooms[client.Room] {
 				client.Conn.WriteJSON(Message{Type: 1, Body: "New client connected", MessageType: 2})
@@ -55,11 +59,21 @@ func (p *Pool) Start() {
 			var messageData struct {
 				Room    string `json:"room"`
 				Message string `json:"message"`
+                Sender  string `json:"sender"`
 			}
-			err := json.Unmarshal([]byte(message.Body), &messageData)
+            err := json.Unmarshal([]byte(message.Body), &messageData)
 			if err != nil {
 				fmt.Println(err)
 			}
+            err = repositories.NewMessageRepository().CreateMessage(&request.MessageRequestInsert{
+                RoomID: messageData.Room,
+                SenderID: messageData.Sender,
+                Content: messageData.Message,
+                MessageType: 1,
+            })
+            if err != nil {
+                fmt.Println(err)
+            }
 			p.mu.Unlock()
 
 			message.Body = messageData.Message

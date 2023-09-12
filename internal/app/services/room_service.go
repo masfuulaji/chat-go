@@ -4,7 +4,6 @@ import (
 	"github.com/masfuulaji/go-chat/internal/app/models"
 	"github.com/masfuulaji/go-chat/internal/app/repositories"
 	"github.com/masfuulaji/go-chat/internal/app/request"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type RoomService interface {
@@ -19,8 +18,8 @@ type RoomServiceImpl struct {
 	roomRepository *repositories.RoomRepositoryImpl
 }
 
-func NewRoomService(db *mongo.Database) *RoomServiceImpl {
-	return &RoomServiceImpl{roomRepository: repositories.NewRoomRepository(db)}
+func NewRoomService() *RoomServiceImpl {
+	return &RoomServiceImpl{roomRepository: repositories.NewRoomRepository()}
 }
 
 func (r *RoomServiceImpl) CreateRoom(room *request.RoomRequestInsert) error {
