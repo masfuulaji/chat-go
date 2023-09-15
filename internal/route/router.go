@@ -33,4 +33,17 @@ func SetupRoute(mux *mux.Router) {
     room.HandleFunc("", roomHandler.GetRooms).Methods("GET")
     room.HandleFunc("/{id}", roomHandler.UpdateRoom).Methods("PUT")
     room.HandleFunc("/{id}", roomHandler.DeleteRoom).Methods("DELETE")
+
+    messageHandler := handlers.NewMessageHandler(services.NewMessageService())
+    message := mux.PathPrefix("/message").Subrouter()
+    message.HandleFunc("", messageHandler.CreateMessage).Methods("POST")
+    message.HandleFunc("/{id}", messageHandler.GetMessages).Methods("GET")
+    message.HandleFunc("", messageHandler.GetMessage).Methods("GET")
+    message.HandleFunc("/{id}", messageHandler.UpdateMessage).Methods("PUT")
+    message.HandleFunc("/{id}", messageHandler.DeleteMessage).Methods("DELETE")
+    
+    authHandler := handlers.NewAuthHandler(services.NewAuthService())
+    auth := mux.PathPrefix("/auth").Subrouter()
+    auth.HandleFunc("/login", authHandler.Login).Methods("POST")
+    auth.HandleFunc("/register", authHandler.Register).Methods("POST")
 }

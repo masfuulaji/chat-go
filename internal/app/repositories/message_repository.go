@@ -47,7 +47,7 @@ func (r *MessageRepositoryImpl) GetMessage(messageID string) (*models.Message, e
 
 func (r *MessageRepositoryImpl) GetMessages(roomID string) ([]*models.Message, error) {
     var messages []*models.Message
-    cursor, err := r.db.Collection("messages").Find(context.TODO(), bson.M{})
+    cursor, err := r.db.Collection("messages").Find(context.TODO(), bson.M{"room_id": roomID})
     if err != nil {
         return messages, err
     }
