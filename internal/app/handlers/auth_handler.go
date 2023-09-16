@@ -3,7 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/masfuulaji/go-chat/internal/app/request"
 	"github.com/masfuulaji/go-chat/internal/app/services"
 )
@@ -28,14 +30,29 @@ func (ah *AuthHandlerImpl) Login(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    userJSON, err := json.Marshal(user)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
 
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+        "id": user.ID,
+        "name": user.Name,
+        "exp": time.Now().Add(time.Hour * 24).Unix(),
+    })
+
+    tokenString, err := token.SignedString([]byte("secret"))
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    response := map[string]string{
+        "token": tokenString,
+    }
+
     w.WriteHeader(http.StatusOK)
-    w.Write(userJSON)
+    json.NewEncoder(w).Encode(response)
 }
 
 func (ah *AuthHandlerImpl) Register(w http.ResponseWriter, r *http.Request) {
@@ -47,18 +64,16 @@ func (ah *AuthHandlerImpl) Register(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    user, err := ah.authService.Register(&data)
+    _, err = ah.authService.Register(&data)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
 
-    userJSON, err := json.Marshal(user)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
+    respose := map[string]string{
+        "message": "User registered",
     }
 
     w.WriteHeader(http.StatusOK)
-    w.Write(userJSON)
+    json.NewEncoder(w).Encode(respose)
 }

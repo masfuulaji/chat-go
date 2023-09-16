@@ -9,14 +9,9 @@ import (
 	"github.com/masfuulaji/go-chat/internal/websocket"
 )
 
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-    (*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-}
 func SetupRoute(mux *mux.Router) {
 	pool := websocket.NewPool()
 	go pool.Start()
-
 
     mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
         w.Write([]byte("Hello World!"))
@@ -28,6 +23,7 @@ func SetupRoute(mux *mux.Router) {
 
     roomHandler := handlers.NewRoomHandler(services.NewRoomService())
     room := mux.PathPrefix("/room").Subrouter()
+    room.Use(AuthMiddleware)
     room.HandleFunc("", roomHandler.CreateRoom).Methods("POST")
     room.HandleFunc("/{id}", roomHandler.GetRoom).Methods("GET")
     room.HandleFunc("", roomHandler.GetRooms).Methods("GET")
@@ -36,6 +32,7 @@ func SetupRoute(mux *mux.Router) {
 
     messageHandler := handlers.NewMessageHandler(services.NewMessageService())
     message := mux.PathPrefix("/message").Subrouter()
+    message.Use(AuthMiddleware)
     message.HandleFunc("", messageHandler.CreateMessage).Methods("POST")
     message.HandleFunc("/{id}", messageHandler.GetMessages).Methods("GET")
     message.HandleFunc("", messageHandler.GetMessage).Methods("GET")
@@ -44,6 +41,16 @@ func SetupRoute(mux *mux.Router) {
     
     authHandler := handlers.NewAuthHandler(services.NewAuthService())
     auth := mux.PathPrefix("/auth").Subrouter()
+    auth.HandleFunc("", authHandler.Login).Methods("POST")
     auth.HandleFunc("/login", authHandler.Login).Methods("POST")
     auth.HandleFunc("/register", authHandler.Register).Methods("POST")
+
+    userHandler := handlers.NewUserHandler(services.NewUserService())
+    user := mux.PathPrefix("/user").Subrouter()
+    user.Use(AuthMiddleware)
+    user.HandleFunc("", userHandler.CreateUser).Methods("POST")
+    user.HandleFunc("/{id}", userHandler.GetUser).Methods("GET")
+    user.HandleFunc("", userHandler.GetUsers).Methods("GET")
+    user.HandleFunc("/{id}", userHandler.UpdateUser).Methods("PUT")
+    user.HandleFunc("/{id}", userHandler.DeleteUser).Methods("DELETE")
 }
