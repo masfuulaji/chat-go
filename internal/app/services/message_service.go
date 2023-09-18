@@ -7,7 +7,7 @@ import (
 )
 
 type MessageService interface {
-    CreateMessage(message *request.MessageRequestInsert) error
+    CreateMessage(message *request.MessageRequestInsert, userId string) error
     GetMessage(messageID string) (*models.Message, error)
     GetMessages(roomID string) ([]*models.Message, error)
     UpdateMessage(messageID string, message *models.Message) error
@@ -22,8 +22,8 @@ func NewMessageService() *MessageServiceImpl {
     return &MessageServiceImpl{MessageRepository: repositories.NewMessageRepository()}
 }
 
-func (s *MessageServiceImpl) CreateMessage(message *request.MessageRequestInsert) error {
-    return s.MessageRepository.CreateMessage(message)
+func (s *MessageServiceImpl) CreateMessage(message *request.MessageRequestInsert, userId string) error {
+    return s.MessageRepository.CreateMessage(message, userId)
 }
 
 func (s *MessageServiceImpl) GetMessage(messageID string) (*models.Message, error) {

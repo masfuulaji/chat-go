@@ -13,7 +13,7 @@ import (
 )
 
 type MessageRepository interface {
-    CreateMessage(message *request.MessageRequestInsert) error 
+    CreateMessage(message *request.MessageRequestInsert, userId string) error 
     GetMessage(messageID string) (*models.Message, error)
     GetMessages(roomID string) ([]*models.Message, error)
     UpdateMessage(messageID string, message *models.Message) error
@@ -28,9 +28,10 @@ func NewMessageRepository() *MessageRepositoryImpl {
     return &MessageRepositoryImpl{db: database.DB}
 }
 
-func (r *MessageRepositoryImpl) CreateMessage(message *request.MessageRequestInsert) error {
+func (r *MessageRepositoryImpl) CreateMessage(message *request.MessageRequestInsert, userId string) error {
     message.CreatedAt = time.Now()
     message.UpdatedAt = time.Now()
+    message.SenderID = userId
     _, err := r.db.Collection("messages").InsertOne(context.TODO(), message)
     return err
 }
@@ -47,7 +48,7 @@ func (r *MessageRepositoryImpl) GetMessage(messageID string) (*models.Message, e
 
 func (r *MessageRepositoryImpl) GetMessages(roomID string) ([]*models.Message, error) {
     var messages []*models.Message
-    cursor, err := r.db.Collection("messages").Find(context.TODO(), bson.M{"room_id": roomID})
+    cursor, err := r.db.Collection("messages").Find(context.TODO(), bson.M{"deleted_at": bson.M{"$exists": false}})
     if err != nil {
         return messages, err
     }
@@ -58,6 +59,7 @@ func (r *MessageRepositoryImpl) GetMessages(roomID string) ([]*models.Message, e
         if err != nil {
             return messages, err
         }
+        messages = append(messages, &message)
     }
     return messages, err
 }

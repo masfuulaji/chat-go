@@ -59,21 +59,20 @@ func (p *Pool) Start() {
 			var messageData struct {
 				Room    string `json:"room"`
 				Message string `json:"message"`
-                Sender  string `json:"sender"`
+				Sender  string `json:"sender"`
 			}
-            err := json.Unmarshal([]byte(message.Body), &messageData)
+			err := json.Unmarshal([]byte(message.Body), &messageData)
 			if err != nil {
 				fmt.Println(err)
 			}
-            err = repositories.NewMessageRepository().CreateMessage(&request.MessageRequestInsert{
-                RoomID: messageData.Room,
-                SenderID: messageData.Sender,
-                Content: messageData.Message,
-                MessageType: 1,
-            })
-            if err != nil {
-                fmt.Println(err)
-            }
+			err = repositories.NewMessageRepository().CreateMessage(&request.MessageRequestInsert{
+				RoomID:      messageData.Room,
+				Content:     messageData.Message,
+				MessageType: 1,
+			}, messageData.Sender)
+			if err != nil {
+				fmt.Println(err)
+			}
 			p.mu.Unlock()
 
 			message.Body = messageData.Message

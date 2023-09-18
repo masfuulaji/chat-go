@@ -20,9 +20,10 @@ func main() {
 	route.SetupRoute(mux)
     // handler := cors.Default().Handler(mux)
     handler := handlers.CORS(
-        handlers.AllowedOrigins([]string{"*"}),
+        handlers.AllowedOrigins([]string{"http://localhost:5173"}),
         handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"}),
         handlers.AllowedHeaders([]string{"Content-Type"}),
+        handlers.AllowCredentials(),
     )
     http.Handle("/", handler(mux))
 	http.ListenAndServe(":8080", nil)

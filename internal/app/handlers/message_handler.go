@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/securecookie"
 	"github.com/masfuulaji/go-chat/internal/app/models"
 	"github.com/masfuulaji/go-chat/internal/app/request"
 	"github.com/masfuulaji/go-chat/internal/app/services"
@@ -27,14 +30,48 @@ func NewMessageHandler(messageService services.MessageService) *MessageHandlerIm
 }
 
 func (mh *MessageHandlerImpl) CreateMessage(w http.ResponseWriter, r *http.Request) {
+    cookie, err := r.Cookie("jwt")
+    if err != nil {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
+    var tokenString string
+
+    err = securecookie.New([]byte("secret"), nil).Decode("jwt", cookie.Value, &tokenString)
+    if err != nil {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte("secret"), nil
+	})
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	claim, ok := token.Claims.(jwt.MapClaims)
+
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
     var message request.MessageRequestInsert
-    err := json.NewDecoder(r.Body).Decode(&message)
+    err = json.NewDecoder(r.Body).Decode(&message)
     if err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
 
-    err = mh.messageService.CreateMessage(&message)
+    userID := claim["id"].(string)
+
+    err = mh.messageService.CreateMessage(&message, userID)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return

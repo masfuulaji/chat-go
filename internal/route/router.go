@@ -34,8 +34,8 @@ func SetupRoute(mux *mux.Router) {
     message := mux.PathPrefix("/message").Subrouter()
     message.Use(AuthMiddleware)
     message.HandleFunc("", messageHandler.CreateMessage).Methods("POST")
-    message.HandleFunc("/{id}", messageHandler.GetMessages).Methods("GET")
-    message.HandleFunc("", messageHandler.GetMessage).Methods("GET")
+    message.HandleFunc("/{id}", messageHandler.GetMessage).Methods("GET")
+    message.HandleFunc("", messageHandler.GetMessages).Methods("GET")
     message.HandleFunc("/{id}", messageHandler.UpdateMessage).Methods("PUT")
     message.HandleFunc("/{id}", messageHandler.DeleteMessage).Methods("DELETE")
     
@@ -44,6 +44,7 @@ func SetupRoute(mux *mux.Router) {
     auth.HandleFunc("", authHandler.Login).Methods("POST")
     auth.HandleFunc("/login", authHandler.Login).Methods("POST")
     auth.HandleFunc("/register", authHandler.Register).Methods("POST")
+    auth.HandleFunc("/check", authHandler.CheckAuth).Methods("GET")
 
     userHandler := handlers.NewUserHandler(services.NewUserService())
     user := mux.PathPrefix("/user").Subrouter()
