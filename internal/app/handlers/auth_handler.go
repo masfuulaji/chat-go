@@ -16,6 +16,7 @@ type AuthHandler interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	Register(w http.ResponseWriter, r *http.Request)
 	CheckAuth(w http.ResponseWriter, r *http.Request)
+    Logout(w http.ResponseWriter, r *http.Request)
 }
 
 type AuthHandlerImpl struct {
@@ -148,4 +149,23 @@ func (ah *AuthHandlerImpl) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+}
+
+func (ah *AuthHandlerImpl) Logout(w http.ResponseWriter, r *http.Request) {
+    cookie := &http.Cookie{
+        Name:   "jwt",
+        Value:  "",
+        Path:   "/",
+        Expires: time.Now(),
+        HttpOnly: true,
+    }
+
+    http.SetCookie(w, cookie)
+
+    respose := map[string]string{
+        "message": "User logged out",
+    }
+
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(respose)
 }

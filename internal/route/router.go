@@ -45,6 +45,7 @@ func SetupRoute(mux *mux.Router) {
     auth.HandleFunc("/login", authHandler.Login).Methods("POST")
     auth.HandleFunc("/register", authHandler.Register).Methods("POST")
     auth.HandleFunc("/check", authHandler.CheckAuth).Methods("GET")
+    auth.HandleFunc("/logout", authHandler.Logout).Methods("GET")
 
     userHandler := handlers.NewUserHandler(services.NewUserService())
     user := mux.PathPrefix("/user").Subrouter()
