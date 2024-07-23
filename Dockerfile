@@ -1,11 +1,11 @@
 # Use the official Golang image as the base
-FROM golang:1.20
+FROM golang:1.22
 
 # Set the working directory inside the container
 WORKDIR /app
 
 # Install Air for hot reloading
-RUN go install github.com/cosmtrek/air@latest
+RUN go install github.com/air-verse/air@latest
 
 # Copy the Go module files and download dependencies
 COPY go.mod go.sum ./
@@ -15,4 +15,4 @@ RUN go mod download
 COPY . .
 
 # Run the Go app
-CMD ["air","cmd/main.go"]
+CMD ["air","-c",".air.toml"]
