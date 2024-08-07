@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/masfuulaji/go-chat/internal/database"
 	"github.com/masfuulaji/go-chat/internal/route"
+	"github.com/spf13/viper"
 )
 
 func main() {
@@ -18,8 +20,19 @@ func main() {
 	mux := mux.NewRouter()
 	route.SetupRoute(mux)
 
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.AutomaticEnv()
+
+	// Read the config file
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file, %s", err)
+	}
+
+	allowedUrl := viper.GetStringSlice("allowed_url")
+
 	handler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:5173"}),
+		handlers.AllowedOrigins(allowedUrl),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"}),
 		handlers.AllowedHeaders([]string{"Content-Type"}),
 		handlers.AllowCredentials(),
