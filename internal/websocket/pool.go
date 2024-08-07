@@ -75,7 +75,7 @@ func (p *Pool) Start() {
 			}
 			p.mu.Unlock()
 
-            message.Sender = messageData.Sender
+			message.Sender = messageData.Sender
 			message.Body = messageData.Message
 			for client := range p.Rooms[messageData.Room] {
 				client.Conn.WriteJSON(message)

@@ -16,7 +16,7 @@ type AuthHandler interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	Register(w http.ResponseWriter, r *http.Request)
 	CheckAuth(w http.ResponseWriter, r *http.Request)
-    Logout(w http.ResponseWriter, r *http.Request)
+	Logout(w http.ResponseWriter, r *http.Request)
 }
 
 type AuthHandlerImpl struct {
@@ -31,13 +31,12 @@ func (ah *AuthHandlerImpl) Login(w http.ResponseWriter, r *http.Request) {
 	var data request.UserRequestInsert
 
 	err := json.NewDecoder(r.Body).Decode(&data)
-
-	user, err := ah.authService.Login(data.Name, data.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	user, err := ah.authService.Login(data.Name, data.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -56,28 +55,28 @@ func (ah *AuthHandlerImpl) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	encoded, err := securecookie.New([]byte("secret"), nil).Encode("jwt", tokenString)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    cookie := &http.Cookie{
-        Name:  "jwt",
-        Value: encoded,
-        Path:  "/",
-        HttpOnly: true,
-        // Expires: time.Now().Add(time.Hour * 24),
-        Secure: false,
-    }
+	cookie := &http.Cookie{
+		Name:     "jwt",
+		Value:    encoded,
+		Path:     "/",
+		HttpOnly: true,
+		// Expires: time.Now().Add(time.Hour * 24),
+		Secure: false,
+	}
 
-    http.SetCookie(w, cookie)
+	http.SetCookie(w, cookie)
 
-    respose := map[string]string{
-        "message": "User logged in",
-    }
+	respose := map[string]string{
+		"message": "User logged in",
+	}
 
 	w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(respose)
+	json.NewEncoder(w).Encode(respose)
 }
 
 func (ah *AuthHandlerImpl) Register(w http.ResponseWriter, r *http.Request) {
@@ -104,19 +103,19 @@ func (ah *AuthHandlerImpl) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ah *AuthHandlerImpl) CheckAuth(w http.ResponseWriter, r *http.Request) {
-    cookie, err := r.Cookie("jwt")
-    if err != nil {
-        http.Error(w, "Unauthorized", http.StatusUnauthorized)
-        return
-    }
+	cookie, err := r.Cookie("jwt")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-    var tokenString string
+	var tokenString string
 
-    err = securecookie.New([]byte("secret"), nil).Decode("jwt", cookie.Value, &tokenString)
-    if err != nil {
-        http.Error(w, "Unauthorized", http.StatusUnauthorized)
-        return
-    }
+	err = securecookie.New([]byte("secret"), nil).Decode("jwt", cookie.Value, &tokenString)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -145,27 +144,27 @@ func (ah *AuthHandlerImpl) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"message": "Authorized",
 		"status":  true,
-        "id": claim["id"].(string),
+		"id":      claim["id"].(string),
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
 
 func (ah *AuthHandlerImpl) Logout(w http.ResponseWriter, r *http.Request) {
-    cookie := &http.Cookie{
-        Name:   "jwt",
-        Value:  "",
-        Path:   "/",
-        Expires: time.Now(),
-        HttpOnly: true,
-    }
+	cookie := &http.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now(),
+		HttpOnly: true,
+	}
 
-    http.SetCookie(w, cookie)
+	http.SetCookie(w, cookie)
 
-    respose := map[string]string{
-        "message": "User logged out",
-    }
+	respose := map[string]string{
+		"message": "User logged out",
+	}
 
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(respose)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(respose)
 }

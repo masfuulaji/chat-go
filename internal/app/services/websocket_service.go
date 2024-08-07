@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/masfuulaji/go-chat/internal/utils"
-    "github.com/masfuulaji/go-chat/internal/websocket"
+	"github.com/masfuulaji/go-chat/internal/websocket"
 )
 
 func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
@@ -16,19 +16,19 @@ func ServeWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%+v\n", err)
 	}
 
-    room := r.URL.Query().Get("room")
-    if room == "" {
-        conn.Close()
-        return
-    }
+	room := r.URL.Query().Get("room")
+	if room == "" {
+		conn.Close()
+		return
+	}
 
-    clientID := utils.GenerateRandomID(6) 
+	clientID := utils.GenerateRandomID(6)
 
 	client := &websocket.Client{
-        ID:   clientID,
+		ID:   clientID,
 		Conn: conn,
 		Pool: pool,
-        Room: room,
+		Room: room,
 	}
 	pool.Register <- client
 
